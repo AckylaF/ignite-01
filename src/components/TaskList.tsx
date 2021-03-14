@@ -13,17 +13,34 @@ interface Task {
 export function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [isValidTask, setIsValidTask] = useState(true)
 
   function handleCreateNewTask() {
     // Crie uma nova task com um id random, não permita criar caso o título seja vazio.
+    if(tasks.some(task => task.title === newTaskTitle) || newTaskTitle.length === 0) {
+      setIsValidTask(false)
+      return
+    }
+
+    setTasks(prevState => [...prevState, { 
+      id: Date.now(),
+      title: newTaskTitle,
+      isComplete: false
+    }])
+    setIsValidTask(true)
   }
 
   function handleToggleTaskCompletion(id: number) {
     // Altere entre `true` ou `false` o campo `isComplete` de uma task com dado ID
+    const idx = tasks.findIndex(task => task.id === id)
+    const updatedTasks = [...tasks]
+    updatedTasks[idx] = {...updatedTasks[idx], isComplete: !updatedTasks[idx].isComplete}
+    setTasks(updatedTasks)
   }
 
   function handleRemoveTask(id: number) {
     // Remova uma task da listagem pelo ID
+    setTasks(tasks.filter(task => task.id !== id))
   }
 
   return (
@@ -38,6 +55,7 @@ export function TaskList() {
             onChange={(e) => setNewTaskTitle(e.target.value)}
             value={newTaskTitle}
           />
+          <span className={!isValidTask ? 'warning invalid' : 'warning'}>Task inválida</span>
           <button type="submit" data-testid="add-task-button" onClick={handleCreateNewTask}>
             <FiCheckSquare size={16} color="#fff"/>
           </button>
